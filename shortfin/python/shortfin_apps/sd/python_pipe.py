@@ -405,7 +405,7 @@ def run_cli(argv):
         "--device",
         type=str,
         required=True,
-        choices=["local-task", "hip", "amdgpu"],
+        choices=["local-task", "cuda", "hip", "amdgpu"],
         help="Primary inferencing device",
     )
     parser.add_argument(

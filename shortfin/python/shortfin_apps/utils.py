@@ -22,7 +22,7 @@ def get_system_args(parser):
         "--device",
         type=str,
         required=True,
-        choices=["local-task", "hip", "amdgpu"],
+        choices=["local-task", "cuda", "hip", "amdgpu"],
         help="Device to serve on; e.g. local-task, hip. Same options as `iree-run-module --device` ",
     )
     parser.add_argument(
@@ -92,6 +92,12 @@ class SystemManager:
                 sb.visible_devices = sb.available_devices
                 sb.visible_devices = get_selected_devices(sb, device_ids)
             self.ls = sb.create_system()
+        elif any(x in device for x in ["cuda", "nvgpu"]):
+            if device_ids:
+                sb.visible_devices = sb.available_devices
+                sb.visible_devices = get_selected_devices(sb, device_ids)
+            self.ls = sb.create_system()
+
 
         self.logger.info(f"Created local system with {self.ls.device_names} devices")
         # TODO: Come up with an easier bootstrap thing than manually

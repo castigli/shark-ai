@@ -17,6 +17,14 @@ CPU = DeviceSettings(
     server_flags=("--device=local-task",),
 )
 
+CUDA = DeviceSettings(
+    compile_flags=(
+        "--iree-hal-target-device=cuda",
+        "--iree-cuda-target=sm_80",
+    ),
+    server_flags=("--device=cuda",),
+)
+
 GFX942 = DeviceSettings(
     compile_flags=(
         "--iree-hal-target-device=hip",
@@ -49,6 +57,7 @@ table = {
     "hostcpu": CPU,
     "local-task": CPU,
     "cpu": CPU,
+    "cuda": CUDA,
 }
 
 

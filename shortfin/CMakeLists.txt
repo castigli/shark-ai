@@ -140,6 +140,11 @@ message(STATUS "shortfin supported systems:")
 if(SHORTFIN_SYSTEMS_AMDGPU)
   message(STATUS "  - AMD GPU")
 endif()
+option(SHORTFIN_SYSTEMS_NVGPU "Builds for Nvidia GPU systems" ON)
+message(STATUS "shortfin supported systems:")
+if(SHORTFIN_SYSTEMS_NVGPU)
+  message(STATUS "  - Nvidia GPU")
+endif()
 message(STATUS "  - Host")
 
 ################################################################################
