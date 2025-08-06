@@ -56,6 +56,8 @@ def pytest_generate_tests(metafunc):
         system = metafunc.config.getoption("--system")
         if system == "amdgpu":
             params = ["cpu", "amdgpu"]
+        elif system == "nvgpu":
+            params = ["cpu", "nvgpu"]
         else:
             params = [system]
         metafunc.parametrize("generic_lsys", params, indirect=True)
@@ -69,6 +71,10 @@ CLEAN_ENV_KEYS = [
     "SHORTFIN_AMDGPU_ASYNC_ALLOCATIONS",
     "SHORTFIN_AMDGPU_LOGICAL_DEVICES_PER_PHYSICAL_DEVICE",
     "SHORTFIN_AMDGPU_TRACING_LEVEL",
+    "SHORTFIN_NVGPU_ALLOCATORS",
+    "SHORTFIN_NVGPU_ASYNC_ALLOCATIONS",
+    "SHORTFIN_NVGPU_LOGICAL_DEVICES_PER_PHYSICAL_DEVICE",
+    "SHORTFIN_NVGPU_TRACING_LEVEL",
     "SHORTFIN_HOSTCPU_ALLOCATORS",
     "SHORTFIN_HOSTCPU_TOPOLOGY_NODES",
     "SHORTFIN_HOSTCPU_TOPOLOGY_MAX_GROUP_COUNT",

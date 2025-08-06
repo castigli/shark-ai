@@ -56,6 +56,7 @@ is_not_cpu_condition = (
     "not is_iree_hal_target_device_cpu(config.getoption('iree_hal_target_device'))"
 )
 is_hip_condition = "config.getoption('iree_hal_target_device') == 'hip'"
+is_cuda_condition = "config.getoption('iree_hal_target_device') == 'cuda'"
 is_cpu = pytest.mark.skipif(is_not_cpu_condition)
 is_cpu_win = pytest.mark.skipif(is_cpu_condition and platform == "win32")
 

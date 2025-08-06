@@ -71,6 +71,8 @@ class ShortfinLlmLifecycleManager:
             async_caching=server_params.amdgpu_async_caching,
             amdgpu_allocators=server_params.amdgpu_allocators,
             amdgpu_allow_device_reuse=server_params.amdgpu_allow_device_reuse,
+            nvgpu_async_allocations=server_params.nvgpu_async_allocations,
+            nvgpu_async_caching=server_params.nvgpu_async_caching,
         )
 
         # Setup each service we are hosting.

@@ -68,7 +68,7 @@ class SHORTFIN_API NVGPUSystemBuilder : public HostCPUSystemBuilder {
   // scenarios.
   bool &async_allocations() { return default_device_params_.async_allocations; }
 
-  // "amdgpu_tracing_level": Matches IREE flag --hip_tracing:
+  // "nvgpu_tracing_level": Matches IREE flag --cuda_tracing:
   // Permissible values are:
   //   0 : stream tracing disabled.
   //   1 : coarse command buffer level tracing enabled.

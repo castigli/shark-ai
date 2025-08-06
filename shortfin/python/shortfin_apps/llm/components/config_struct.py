@@ -244,6 +244,10 @@ class ServerParams:
     amdgpu_async_caching: bool = False
     amdgpu_allocators: Optional[str] = None
     amdgpu_allow_device_reuse: bool = False
+    nvgpu_async_allocations: bool = False
+    nvgpu_async_caching: bool = False
+    nvgpu_allocators: Optional[str] = None
+    nvgpu_allow_device_reuse: bool = False
 
     @staticmethod
     def load(config_path: Optional[Path] = None) -> "ServerParams":

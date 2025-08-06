@@ -423,6 +423,9 @@ class ModelStageManager:
             if "hip" in flag.lower():
                 device_type = "hip"  # Use "hip" for AMD GPU device
                 break
+            elif "cuda" in flag.lower():
+                device_type = "cuda"
+                break
 
         logger.info(
             f"Sharding model with tensor parallelism size {self.config.tensor_parallelism_size} "

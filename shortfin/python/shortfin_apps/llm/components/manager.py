@@ -16,6 +16,8 @@ class LlmSystemManager(SystemManager):
         async_caching=True,
         amdgpu_allocators=None,
         amdgpu_allow_device_reuse=False,
+        nvgpu_allocators=None,
+        nvgpu_allow_device_reuse=False,
     ):
         super().__init__(
             device=device,
@@ -24,6 +26,8 @@ class LlmSystemManager(SystemManager):
             async_caching=async_caching,
             amdgpu_allocators=amdgpu_allocators,
             amdgpu_allow_device_reuse=amdgpu_allow_device_reuse,
+            nvgpu_allocators=nvgpu_allocators,
+            nvgpu_allow_device_reuse=nvgpu_allow_device_reuse,
             logger_name=__name__,
             shutdown_system=False,
         )

@@ -94,7 +94,7 @@ class SystemManager:
                 sb.visible_devices = sb.available_devices
                 sb.visible_devices = get_selected_devices(sb, device_ids)
             self.ls = sb.create_system()
-        elif any(x in device for x in ["cuda", "nvgpu"]):
+        elif any(x in device for x in ["cuda"]):
             if nvgpu_allocators is None:
                 sb = sf.SystemBuilder(
                     system_type="nvgpu",
