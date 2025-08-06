@@ -55,8 +55,8 @@ void NVGPUSystemBuilder::InitializeDefaultSettings() {
   default_device_params_.async_allocations =
       config_options().GetBool("nvgpu_async_allocations", true);
 
-  default_device_params_.async_caching =
-      config_options().GetBool("nvgpu_async_caching", true);
+  // default_device_params_.async_caching =
+  //     config_options().GetBool("nvgpu_async_caching", true);
 
   nvgpu_allow_device_reuse_ =
       config_options().GetBool("nvgpu_allow_device_reuse", false);
@@ -100,15 +100,15 @@ void NVGPUSystemBuilder::Enumerate() {
   iree_hal_cuda_driver_options_t driver_options;
   iree_hal_cuda_driver_options_initialize(&driver_options);
 
-  // Search path.
-  std::vector<iree_string_view_t> cuda_lib_search_path_sv;
-  cuda_lib_search_path_sv.resize(cuda_lib_search_paths_.size());
-  for (size_t i = 0; i < cuda_lib_search_paths_.size(); ++i) {
-    cuda_lib_search_path_sv[i].data = cuda_lib_search_paths_[i].data();
-    cuda_lib_search_path_sv[i].size = cuda_lib_search_paths_[i].size();
-  }
-  driver_options.cuda_lib_search_paths = cuda_lib_search_path_sv.data();
-  driver_options.cuda_lib_search_path_count = cuda_lib_search_path_sv.size();
+  // // Search path.
+  // std::vector<iree_string_view_t> cuda_lib_search_path_sv;
+  // cuda_lib_search_path_sv.resize(cuda_lib_search_paths_.size());
+  // for (size_t i = 0; i < cuda_lib_search_paths_.size(); ++i) {
+  //   cuda_lib_search_path_sv[i].data = cuda_lib_search_paths_[i].data();
+  //   cuda_lib_search_path_sv[i].size = cuda_lib_search_paths_[i].size();
+  // }
+  // driver_options.cuda_lib_search_paths = cuda_lib_search_path_sv.data();
+  // driver_options.cuda_lib_search_path_count = cuda_lib_search_path_sv.size();
 
   SHORTFIN_THROW_IF_ERROR(iree_hal_cuda_driver_create(
       IREE_SV("cuda"), &driver_options, &default_device_params_,
@@ -183,7 +183,7 @@ SystemPtr NVGPUSystemBuilder::CreateSystem() {
         if (hal_id) {
           found = true;
           used_device_ids.push_back(*hal_id);
-          if (!amdgpu_allow_device_reuse_) {
+          if (!nvgpu_allow_device_reuse_) {
             hal_id.reset();
           }
         }
@@ -228,7 +228,7 @@ SystemPtr NVGPUSystemBuilder::CreateSystem() {
          ++logical_index) {
       iree::hal_device_ptr device;
       SHORTFIN_THROW_IF_ERROR(iree_hal_driver_create_device_by_id(
-          hip_hal_driver_, device_id, 0, nullptr, host_allocator(),
+          cuda_hal_driver_, device_id, 0, nullptr, host_allocator(),
           device.for_output()));
       DeviceAddress address(
           /*system_device_class=*/SYSTEM_DEVICE_CLASS,
@@ -238,7 +238,7 @@ SystemPtr NVGPUSystemBuilder::CreateSystem() {
           /*queue_ordinal=*/0,
           /*instance_topology_address=*/{logical_index});
       ConfigureAllocators(nvgpu_allocator_specs_, device, address.device_name);
-      lsys->InitializeHalDevice(std::make_unique<AMDGPUDevice>(
+      lsys->InitializeHalDevice(std::make_unique<NVGPUDevice>(
           address,
           /*hal_device=*/device,
           /*node_affinity=*/0,

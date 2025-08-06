@@ -18,6 +18,9 @@
 #if defined(SHORTFIN_HAVE_AMDGPU)
 #include "shortfin/local/systems/amdgpu.h"
 #endif  // SHORTFIN_HAVE_AMDGPU
+#if defined(SHORTFIN_HAVE_NVGPU)
+#include "shortfin/local/systems/nvgpu.h"
+#endif  // SHORTFIN_HAVE_NVGPU
 #include "shortfin/local/systems/host.h"
 #include "shortfin/support/globals.h"
 #include "shortfin/support/logging.h"
@@ -543,6 +546,9 @@ NB_MODULE(lib, m) {
 #if defined(SHORTFIN_HAVE_AMDGPU)
   BindAMDGPUSystem(local_m);
 #endif  // SHORTFIN_HAVE_AMDGPU
+#if defined(SHORTFIN_HAVE_NVGPU)
+  BindNVGPUSystem(local_m);
+#endif  // SHORTFIN_HAVE_NVGPU
 
   auto array_m = m.def_submodule("array");
   BindArray(array_m);
@@ -1538,5 +1544,159 @@ void BindAMDGPUSystem(py::module_ &global_m) {
   py::class_<local::systems::AMDGPUDevice, local::Device>(m, "AMDGPUDevice");
 }
 #endif  // SHORTFIN_HAVE_AMDGPU
+
+#if defined(SHORTFIN_HAVE_NVGPU)
+namespace {
+static const char DOCSTRING_NVGPU_SYSTEM_BUILDER_CTOR[] =
+    R"(Constructs a system with NVGPU based devices.  
+Most configuration is done by way of key/value arguments. See the properties
+of this class, which document the option keywords that can be passed to this
+constructor.  
+
+Args:
+  env_prefix: Controls how options are looked up in the environment. By default,
+    the prefix is "SHORTFIN_" and upper-cased options are appended to it. Any
+    option not explicitly specified but in the environment will be used. Pass
+    None to disable environment lookup.
+  **kwargs: Key/value arguments for controlling setup of the system.
+)";
+
+static const char DOCSTRING_NVGPU_SYSTEM_BUILDER_NVGPU_ALLOCATOR_SPECS[] =
+    R"(Allocator specs to apply to NVGPU devices configured by this builder.
+
+  This uses syntax like::
+
+    some_allocator
+    some_allocator:key=value
+    some_allocator:key=value,key=value
+    some_allocator:key=value,key=value;other_allocator:key=value
+
+  Typical values for `some_allocator` include `caching` and `debug`.
+
+  This can be set via a keyword of `nvgpu_allocators`, which will only apply to
+  NVGPU devices or `allocators` which will apply to all contained devices.
+  Similarly, it is available on a `SHORTFIN_` prefixed env variable if environment
+  lookup is not disabled.
+)";
+
+static const char DOCSTRING_NVGPU_SYSTEM_BUILDER_NVGPU_ASYNC_ALLOCATIONS[] =
+    R"(Whether to use async allocations if supported (default true).)";
+
+static const char DOCSTRING_NVGPU_SYSTEM_BUILDER_CPU_DEVICES_ENABLED[] =
+    R"(Whether to create a heterogenous system with hostcpu and nvgpu devices.
+
+Defaults to false. If enabled, the resulting system will contain both device
+types and it is up to application code to differentiate between them. All
+options for the hostcpu system builder are applicable in this case. 
+
+This option can be set as an option keyword with the name
+"nvgpu_cpu_devices_enabled" or the environment variable
+"SHORTFIN_NVGPU_CPU_DEVICES_ENABLED=true" (if `env_prefix` was not changed
+at construction).
+)";
+
+
+static const char DOCSTRING_NVGPU_SYSTEM_BUILDER_AVAILABLE_DEVICES[] =
+    R"(List of available device ids on the system.
+
+Accessing this property triggers enumeration, so configuration needed to load
+libraries and perform basic system setup must be set first.
+)";
+
+
+static const char DOCSTRING_NVGPU_SYSTEM_BUILDER_VISIBLE_DEVICES[] =
+    R"(Get or set the list of visible device ids. 
+
+If not set or None, then all available devices will be opened and added to
+the system. See the property `available_devices` to access this list of ids.  
+
+If set, then each device with the given device id will be opened and added to
+the system in the order listed. Note that in certain partitioned cases, multiple  
+devices may be available with the same device id. In this case, duplicates
+in the visible devices list will cause instantiate a partition of the device
+in enumeration order (so there can be as many duplicates as physical
+partitions). This is an uncommon scenario and most users should not specify
+duplicate device ids. Since there are several ways that partitioned devices
+can be consumed, additional options will be available in the future for
+controlling this behavior.
+
+This property can be set as an option keyword with the name
+"nvgpu_visible_devices" or the environment variable
+"SHORTFIN_NVGPU_VISIBLE_DEVICES" (if `env_prefix` was not changed at
+construction). Multiples can be separated by a semicolon.
+)";
+
+} // namespace
+
+void BindNVGPUSystem(py::module_ &global_m) {
+  auto m = global_m.def_submodule("nvgpu", "NVGPU system config");
+  py::class_<local::systems::NVGPUSystemBuilder,
+             local::systems::HostCPUSystemBuilder>(m, "SystemBuilder")
+      .def("__init__", [](py::args, py::kwargs) {})
+      .def_static(
+          "__new__",
+          [](py::handle cls, std::optional<std::string> env_prefix,
+             bool validate_undef, py::kwargs kwargs) {
+            auto options =
+                CreateConfigOptions(env_prefix, kwargs, validate_undef);
+            return std::make_unique<local::systems::NVGPUSystemBuilder>(
+                iree_allocator_system(), std::move(options));
+          },
+          // Note that for some reason, no-arg construction passes no arguments
+          // to __new__. We allow the single positional argument to be none,
+          // which satisfies this case in practice.
+          py::arg("cls") = py::none(), py::kw_only(),
+          py::arg("env_prefix").none() = "SHORTFIN_",
+          py::arg("validate_undef") = true, py::arg("kwargs"),
+          DOCSTRING_NVGPU_SYSTEM_BUILDER_CTOR)
+      .def_prop_rw(
+          "nvgpu_allocator_specs",
+          [](local::systems::NVGPUSystemBuilder &self) {
+            return self.nvgpu_allocator_specs();
+          },
+          [](local::systems::NVGPUSystemBuilder &self,
+             std::vector<std::string> specs) {
+            self.nvgpu_allocator_specs() = std::move(specs);
+          },
+          DOCSTRING_NVGPU_SYSTEM_BUILDER_NVGPU_ALLOCATOR_SPECS)
+      .def_prop_ro(
+          "available_devices",
+          [](local::systems::NVGPUSystemBuilder &self) {
+            return self.GetAvailableDeviceIds();
+          },
+          DOCSTRING_NVGPU_SYSTEM_BUILDER_AVAILABLE_DEVICES)
+      .def_prop_rw(
+          "async_allocations",
+          [](local::systems::NVGPUSystemBuilder &self) {
+            return self.async_allocations();
+          },
+          [](local::systems::NVGPUSystemBuilder &self, bool value) {
+            self.async_allocations() = value;
+          },
+          DOCSTRING_NVGPU_SYSTEM_BUILDER_NVGPU_ASYNC_ALLOCATIONS)
+      .def_prop_rw(
+          "cpu_devices_enabled",
+          [](local::systems::NVGPUSystemBuilder &self) -> bool {
+            return self.cpu_devices_enabled();
+          },
+          [](local::systems::NVGPUSystemBuilder &self, bool en) {
+            self.cpu_devices_enabled() = en;
+          },
+          DOCSTRING_NVGPU_SYSTEM_BUILDER_CPU_DEVICES_ENABLED)
+      .def_prop_rw(
+          "visible_devices",
+          [](local::systems::NVGPUSystemBuilder &self)
+              -> std::optional<std::vector<std::string>> {
+            return self.visible_devices();
+          },
+          [](local::systems::NVGPUSystemBuilder &self,
+             std::optional<std::vector<std::string>> vs) {
+            self.visible_devices() = std::move(vs);
+          },
+          DOCSTRING_NVGPU_SYSTEM_BUILDER_VISIBLE_DEVICES);
+
+    py::class_<local::systems::NVGPUDevice, local::Device>(m, "NVGPUDevice");
+  }
+#endif  // SHORTFIN_HAVE_NVGPU
 
 }  // namespace shortfin::python

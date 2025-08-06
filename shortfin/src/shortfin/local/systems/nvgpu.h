@@ -95,7 +95,7 @@ class SHORTFIN_API NVGPUSystemBuilder : public HostCPUSystemBuilder {
   void Enumerate();
 
   // Valid at construction time.
-  iree_hal_hip_device_params_t default_device_params_;
+  iree_hal_cuda_device_params_t default_device_params_;
 
   // Configuration.
   bool cpu_devices_enabled_ = false;
