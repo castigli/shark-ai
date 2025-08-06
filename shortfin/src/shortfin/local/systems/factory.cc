@@ -17,6 +17,10 @@
 #include "shortfin/local/systems/amdgpu.h"
 #endif
 
+#ifdef SHORTFIN_HAVE_NVGPU
+#include "shortfin/local/systems/nvgpu.h"
+#endif
+
 namespace shortfin::local {
 
 SystemPtr System::Create(iree_allocator_t host_allocator,
@@ -55,6 +59,15 @@ std::unique_ptr<SystemBuilder> SystemBuilder::ForSystem(
           +[](iree_allocator_t host_allocator,
               ConfigOptions options) -> std::unique_ptr<SystemBuilder> {
             return std::make_unique<systems::AMDGPUSystemBuilder>(
+                host_allocator, std::move(options));
+          }),
+#endif
+#ifdef SHORTFIN_HAVE_NVGPU
+      std::make_pair(
+          "nvgpu",
+          +[](iree_allocator_t host_allocator,
+              ConfigOptions options) -> std::unique_ptr<SystemBuilder> {
+            return std::make_unique<systems::NVGPUSystemBuilder>(
                 host_allocator, std::move(options));
           }),
 #endif

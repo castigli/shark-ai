@@ -63,6 +63,8 @@ class SystemManager:
         async_caching: bool = True,
         amdgpu_allow_device_reuse: bool = False,
         amdgpu_allocators: Optional[bool] = None,
+        nvgpu_allow_device_reuse: bool = False,
+        nvgpu_allocators: Optional[bool] = None,
         logger_name: str = __name__,
         shutdown_system: bool = True,
     ):
@@ -93,6 +95,19 @@ class SystemManager:
                 sb.visible_devices = get_selected_devices(sb, device_ids)
             self.ls = sb.create_system()
         elif any(x in device for x in ["cuda", "nvgpu"]):
+            if nvgpu_allocators is None:
+                sb = sf.SystemBuilder(
+                    system_type="nvgpu",
+                    nvgpu_async_allocations=async_allocs,
+                    nvgpu_allow_device_reuse=nvgpu_allow_device_reuse,
+                )
+            else:
+                sb = sf.SystemBuilder(
+                    system_type="nvgpu",
+                    nvgpu_async_allocations=async_allocs,
+                    nvgpu_allocators=nvgpu_allocators,
+                    nvgpu_allow_device_reuse=nvgpu_allow_device_reuse,
+                )
             if device_ids:
                 sb.visible_devices = sb.available_devices
                 sb.visible_devices = get_selected_devices(sb, device_ids)
