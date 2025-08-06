@@ -115,6 +115,8 @@ def generic_lsys(request):
         sc = sf.host.CPUSystemBuilder()
     elif system_type == "amdgpu":
         sc = sf.amdgpu.SystemBuilder()
+    elif system_type == "nvgpu":
+        sc = sf.nvgpu.SystemBuilder()
     lsys = sc.create_system()
     yield lsys
     lsys.shutdown()

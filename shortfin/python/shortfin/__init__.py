@@ -39,6 +39,7 @@ from . import array
 
 # System namespaces.
 from . import amdgpu
+from . import nvgpu
 from . import host
 
 __all__ = [
@@ -64,5 +65,6 @@ __all__ = [
     "Worker",
     # System namespaces.
     "amdgpu",
+    "nvgpu",
     "host",
 ]

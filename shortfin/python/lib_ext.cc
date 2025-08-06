@@ -1595,6 +1595,36 @@ This option can be set as an option keyword with the name
 at construction).
 )";
 
+static const char
+    DOCSTRING_NVGPU_SYSTEM_BUILDER_LOGICAL_DEVICES_PER_PHYSICAL_DEVICE[] =
+        R"(Number of logical devices to open per physical, visible device.
+
+This option can be set as an option keyword with the name
+"nvgpu_logical_devices_per_physical_device" or the environment variable
+"SHORTFIN_NVGPU_LOGICAL_DEVICES_PER_PHYSICAL_DEVICE" (if `env_prefix` was not
+changed at construction).
+)";
+
+static const char DOCSTRING_NVGPU_SYSTEM_BUILDER_TRACING_LEVEL[] =
+    R"(Tracing level for NVGPU device behavior.
+
+Controls the verbosity of tracing when Tracy instrumentation is enabled.
+The impact to benchmark timing becomes more severe as the verbosity
+increases, and thus should be only enabled when needed.
+
+This is the equivalent of the `--nvgpu_tracing` IREE tools flag.
+Permissible values are:
+  * 0 : stream tracing disabled.
+  * 1 : coarse command buffer level tracing enabled.
+  * 2 : (default) fine-grained kernel level tracing enabled.
+   
+The setting only has an effect if using a tracing enabled runtime (i.e.
+by running with `SHORTFIN_PY_RUNTIME=tracy` or equiv).
+
+The default value for this setting is available as a
+`nvgpu.SystemBuilder(nvgpu_tracing_level=2)` or (by default) from an
+environment variable `SHORTFIN_NVGPU_TRACING_LEVEL`.
+)";
 
 static const char DOCSTRING_NVGPU_SYSTEM_BUILDER_AVAILABLE_DEVICES[] =
     R"(List of available device ids on the system.
@@ -1683,6 +1713,24 @@ void BindNVGPUSystem(py::module_ &global_m) {
             self.cpu_devices_enabled() = en;
           },
           DOCSTRING_NVGPU_SYSTEM_BUILDER_CPU_DEVICES_ENABLED)
+      .def_prop_rw(
+          "tracing_level",
+          [](local::systems::NVGPUSystemBuilder &self) -> int {
+            return self.tracing_level();
+          },
+          [](local::systems::NVGPUSystemBuilder &self, int tracing_level) {
+            self.tracing_level() = tracing_level;
+          },
+          DOCSTRING_NVGPU_SYSTEM_BUILDER_TRACING_LEVEL)
+      .def_prop_rw(
+          "logical_devices_per_physical_device",
+          [](local::systems::NVGPUSystemBuilder &self) -> size_t {
+            return self.logical_devices_per_physical_device();
+          },
+          [](local::systems::NVGPUSystemBuilder &self, size_t value) {
+            self.logical_devices_per_physical_device() = value;
+          },
+          DOCSTRING_NVGPU_SYSTEM_BUILDER_LOGICAL_DEVICES_PER_PHYSICAL_DEVICE)
       .def_prop_rw(
           "visible_devices",
           [](local::systems::NVGPUSystemBuilder &self)
