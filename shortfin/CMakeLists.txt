@@ -47,7 +47,7 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 # Prefer to keep the IREE git tag synced with the Python package version in the
 # requirements-iree-pinned.txt file. At a minimum, the compiler from those
 # packages must be compatible with the runtime at this source ref.
-set(SHORTFIN_IREE_GIT_TAG "iree-3.5.0rc20250606")
+set(SHORTFIN_IREE_GIT_TAG "llama-nv")
 
 
 # build options
@@ -262,7 +262,7 @@ else()
   endif()
   FetchContent_Declare(
     shortfin_iree
-    GIT_REPOSITORY https://github.com/iree-org/iree.git
+    GIT_REPOSITORY https://github.com/castigli/iree.git
     GIT_TAG "${SHORTFIN_IREE_GIT_TAG}"
     GIT_SUBMODULES ${IREE_SUBMODULES}
     GIT_SHALLOW TRUE
